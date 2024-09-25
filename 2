@@ -1,0 +1,98 @@
+import javax.mail.*;
+import javax.mail.search.AndTerm;
+import javax.mail.search.ReceivedDateTerm;
+import javax.mail.search.SubjectTerm;
+import javax.mail.search.SearchTerm;
+import java.util.Date;
+import java.util.Properties;
+import java.util.Calendar;
+
+public class EmailMover {
+
+    public static void main(String[] args) {
+        String host = "imap.gmail.com"; // IMAP server
+        String username = "your-email@gmail.com"; // Your email
+        String password = "your-password"; // Your password
+        String destinationFolderName = "Archive"; // Name of the destination folder
+
+        Properties properties = new Properties();
+        properties.put("mail.store.protocol", "imaps");
+        properties.put("mail.imap.host", host);
+        properties.put("mail.imap.port", "993");
+        properties.put("mail.imap.starttls.enable", "true");
+
+        try {
+            // Create session and connect to server
+            Session session = Session.getDefaultInstance(properties, null);
+            Store store = session.getStore("imaps");
+            store.connect(host, username, password);
+
+            // Open inbox folder
+            Folder inbox = store.getFolder("INBOX");
+            inbox.open(Folder.READ_WRITE);
+
+            // Open the destination folder
+            Folder destinationFolder = store.getFolder(destinationFolderName);
+            if (!destinationFolder.exists()) {
+                destinationFolder.create(Folder.HOLDS_MESSAGES); // Create folder if it doesn't exist
+            }
+            destinationFolder.open(Folder.READ_WRITE);
+
+            // Set today's date
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            Date today = cal.getTime();
+
+            // Set search criteria: today’s date and the desired subject
+            SearchTerm dateTerm = new ReceivedDateTerm(ComparisonTerm.EQ, today);
+            SearchTerm subjectTerm = new SubjectTerm("Your Subject Keyword"); // Enter the subject keyword to search
+            SearchTerm combinedTerm = new AndTerm(dateTerm, subjectTerm); // Combine conditions
+
+            // Search for emails based on the criteria
+            Message[] messages = inbox.search(combinedTerm);
+            System.out.println("Total Messages: " + messages.length);
+
+            // Loop through and process the found emails
+            for (Message message : messages) {
+                System.out.println("Email Subject: " + message.getSubject());
+
+                // Check for attachments
+                if (message.isMimeType("multipart/*")) {
+                    Multipart multipart = (Multipart) message.getContent();
+
+                    for (int i = 0; i < multipart.getCount(); i++) {
+                        BodyPart bodyPart = multipart.getBodyPart(i);
+
+                        // Check if it is an attachment
+                        if (Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition())) {
+                            String fileName = bodyPart.getFileName();
+                            System.out.println("Attachment found: " + fileName);
+
+                            // Copy email to the destination folder
+                            Message copyMessage = new MimeMessage((MimeMessage) message);
+                            copyMessage.setFlag(Flags.Flag.DELETED, false);
+                            copyMessage.setSubject(message.getSubject());
+                            copyMessage.setContent(message.getContent(), message.getContentType());
+                            copyMessage.saveChanges();
+                            destinationFolder.appendMessages(new Message[]{copyMessage});
+                            System.out.println("Moved email to: " + destinationFolderName);
+
+                            // Delete the original email
+                            message.setFlag(Flags.Flag.DELETED, true);
+                        }
+                    }
+                }
+            }
+
+            // Close inbox and destination folder
+            inbox.close(true); // 'true' to expunge messages marked for deletion
+            destinationFolder.close();
+            store.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
