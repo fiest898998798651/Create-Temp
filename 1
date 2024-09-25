@@ -1,0 +1,83 @@
+import javax.mail.*;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.search.AndTerm;
+import javax.mail.search.ReceivedDateTerm;
+import javax.mail.search.SubjectTerm;
+import javax.mail.search.SearchTerm;
+import java.util.Date;
+import java.util.Properties;
+import java.util.Calendar;
+import javax.mail.Flags;
+
+public class EmailReaderAndDeleter {
+
+    public static void main(String[] args) {
+        String host = "imap.gmail.com"; // IMAP server
+        String username = "your-email@gmail.com"; // Your email
+        String password = "your-password"; // Your password
+
+        Properties properties = new Properties();
+        properties.put("mail.store.protocol", "imaps");
+        properties.put("mail.imap.host", host);
+        properties.put("mail.imap.port", "993");
+        properties.put("mail.imap.starttls.enable", "true");
+
+        try {
+            // สร้าง session และเชื่อมต่อกับ server
+            Session session = Session.getDefaultInstance(properties, null);
+            Store store = session.getStore("imaps");
+            store.connect(host, username, password);
+
+            // เปิด folder inbox
+            Folder inbox = store.getFolder("INBOX");
+            inbox.open(Folder.READ_WRITE);
+
+            // กำหนดวันที่วันนี้
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            Date today = cal.getTime();
+
+            // กำหนดเงื่อนไขการค้นหา: วันที่วันนี้และ subject ที่ต้องการ
+            SearchTerm dateTerm = new ReceivedDateTerm(ComparisonTerm.EQ, today);
+            SearchTerm subjectTerm = new SubjectTerm("Your Subject Keyword"); // ใส่ subject ที่ต้องการค้นหา
+            SearchTerm combinedTerm = new AndTerm(dateTerm, subjectTerm); // รวมเงื่อนไข
+
+            // ค้นหาอีเมลตามเงื่อนไข
+            Message[] messages = inbox.search(combinedTerm);
+            System.out.println("Total Messages: " + messages.length);
+
+            // วนลูปเพื่อประมวลผลอีเมลที่ค้นพบ
+            for (Message message : messages) {
+                System.out.println("Email Subject: " + message.getSubject());
+
+                // ตรวจสอบไฟล์แนบ
+                if (message.isMimeType("multipart/*")) {
+                    Multipart multipart = (Multipart) message.getContent();
+
+                    for (int i = 0; i < multipart.getCount(); i++) {
+                        BodyPart bodyPart = multipart.getBodyPart(i);
+
+                        // ตรวจสอบว่าเป็นไฟล์แนบหรือไม่
+                        if (Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition())) {
+                            String fileName = bodyPart.getFileName();
+                            System.out.println("Attachment found: " + fileName);
+
+                            // ทำการลบอีเมลที่มีไฟล์แนบ
+                            message.setFlag(Flags.Flag.DELETED, true);
+                        }
+                    }
+                }
+            }
+
+            // ปิด inbox และทำการลบอีเมลที่ถูก flag ให้ลบ
+            inbox.close(true); // 'true' เพื่อทำการ expunge ข้อความที่ถูก mark ลบ
+            store.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
