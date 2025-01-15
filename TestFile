@@ -314,6 +314,8 @@ const validateColumns = worksheet => {
 
 //code v6
 // เช็คว่าเป็นไฟล์เดิมหรือไม่
+  const [prevFileName, setPrevFileName] = useState('');  // ใช้เก็บชื่อไฟล์ที่เลือกก่อนหน้า
+
     if (file.name === prevFileName) {
       resetState();  // รีเซ็ตสถานะและบังคับให้ผู้ใช้เลือกไฟล์ใหม่
       setPrevFileName('');  // ล้างชื่อไฟล์ที่เลือกก่อนหน้า
