@@ -1,1 +1,10 @@
-test
+Input: BKD/aaa/22-333333 -> Result: true
+Input: BKD/abcd/99-654321 -> Result: true
+Input: BKD/abcd/22-123 -> Result: false
+Input: BKD/abcd/22-3333333 -> Result: false
+Input: BKD/abc/11-123456 -> Result: true
+Input: BKD/abcde/22-333333 -> Result: false
+Input: BKD/123/22-333333 -> Result: false
+Input: BKD/abc/22-33333 -> Result: false
+Input: BK/abc/22-333333 -> Result: false
+Input: BKD/aaa/22-123a56 -> Result: false
