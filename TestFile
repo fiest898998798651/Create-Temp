@@ -144,3 +144,18 @@ const validateColumns = (worksheet, requiredColumns, specificColumn = 'city') =>
 
   return hasAllColumns && cityValid && otherColumnsValid;
 };
+
+// code v3
+const validateWorksheet = (worksheet) => {
+  // ตรวจสอบทุกแถว
+  return worksheet.every(row => {
+    // ตรวจสอบคอลัมน์ที่จำเป็นทั้งหมดที่ต้องมี (ยกเว้น 'city' สำหรับการตรวจสอบเพิ่มเติม)
+    const hasRequiredColumns = ['name', 'age', 'city'].every(col => row.hasOwnProperty(col));
+
+    // ตรวจสอบว่า 'city' ไม่เป็นค่าว่าง, null, หรือ undefined
+    const isCityValid = row.city !== undefined && row.city !== null && row.city.trim() !== '';
+
+    // ถ้าคอลัมน์ที่จำเป็นมีครบ และ city ถูกต้องจะ return true
+    return hasRequiredColumns && isCityValid;
+  });
+};
