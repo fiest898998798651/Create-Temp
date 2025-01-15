@@ -9,3 +9,10 @@
             "BKD/ABC/22-33333",     // Invalid
             "BK/ABC/22-333333",     // Invalid
             "BKD/AAA/22-123a56"     // Invalid
+
+
+public static boolean isValidFormat(String input) {
+        // Regex for the required format
+        String pattern = "^BKD/[A-Z]{3,4}/\\d{2}-\\d{6}$";
+        return input.matches(pattern);
+    }
