@@ -311,3 +311,14 @@ const validateColumns = worksheet => {
     </div>
   );
 };
+
+//code v6
+// เช็คว่าเป็นไฟล์เดิมหรือไม่
+    if (file.name === prevFileName) {
+      resetState();  // รีเซ็ตสถานะและบังคับให้ผู้ใช้เลือกไฟล์ใหม่
+      setPrevFileName('');  // ล้างชื่อไฟล์ที่เลือกก่อนหน้า
+      fileInput.current.value = null;  // รีเซ็ตไฟล์อินพุต
+      return;
+    }
+
+    setPrevFileName(file.name);  // เก็บชื่อไฟล์ที่เลือก
