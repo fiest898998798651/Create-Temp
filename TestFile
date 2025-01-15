@@ -201,3 +201,113 @@ const validateColumns = worksheet => {
   console.log('ผลการตรวจสอบคอลัมน์ที่จำเป็น:', result);
   return result;
 };
+
+//code readXLSX
+
+  const resetState = () => {
+    setErrBrowseFile('');
+    // fileInput.current.value = null;
+  };
+
+  const onSetBrowseFile = e => {
+    e.preventDefault();
+    const file = e.target.files[0];
+
+    if (file) {
+      const fileExtension = file.name.split('.').pop().toUpperCase();
+      console.log(1);
+      
+      if (fileExtension !== 'XLSX') {
+        setErrBrowseFile('Please select only Excel files.');
+      } else if (file.size > 20000000) {
+        setErrBrowseFile(`${file.name} : This file is larger than 20 MB.`);
+      } else {
+        setErrBrowseFile('');
+        const reader = new FileReader();
+        reader.onload = event => {
+          const binaryStr = event.target.result;
+          const workbook = XLSX.read(binaryStr, { type: 'binary' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = XLSX.utils.sheet_to_json(
+            workbook.Sheets[sheetName],{header:1}
+          );
+          console.log(worksheet);
+          console.log(worksheet[0]);
+          console.log(worksheet[1]);
+          
+
+          if(worksheet.length == 0){
+            checkTemplateCol(false);
+            setModalMessage('The uploaded file Not found Value in Sheet');
+            toggleModal();
+            resetState();
+            return;
+
+          }else{
+            if (!validateColumns(worksheet)) {
+              checkTemplateCol(false);
+              setModalMessage('The uploaded file contain invalid column format');
+              toggleModal();
+              resetState();
+              return;
+            }else{
+              checkTemplateCol(true);
+            }
+          }
+         
+
+          onFileNameChange(file.name);
+          const transformedData = transformData(worksheet);
+          onFileSelect(transformedData);
+        };
+        reader.readAsBinaryString(file);
+      }
+    } else {
+      // setErrBrowseFile('Please select a file to upload.');
+    }
+  };
+
+  const handleButtonClick = () => {
+    fileInput.current.click();
+  };
+
+  return (
+    <div>
+      <input
+        ref={fileInput}
+        type="file"
+        multiple={false}
+        name="filesArray"
+        id="upload-File"
+        onChange={onSetBrowseFile}
+        accept=".xlsx"
+        style={{ display: 'none' }}
+      />
+      <Button
+        outline
+        color="primary"
+        className="text-uppercase"
+        style={{ marginLeft: '10px', marginRight: '10px', width: '250px' }}
+        onClick={handleButtonClick}
+      >
+        <FaSearch className="nav-item-icon" />
+        Choose File
+      </Button>
+      {errBrowseFile && (
+        <span className="errorMessage" style={{ paddingLeft: '1rem' }}>
+          {errBrowseFile}
+        </span>
+      )}
+
+      <Modal isOpen={modal} toggle={toggleModal}>
+        <ModalHeader toggle={toggleModal}>File Upload Error</ModalHeader>
+        <ModalBody>{modalMessage}</ModalBody>
+        <ModalFooter>
+          <Button color="secondary" onClick={toggleModal}>
+            Close
+          </Button>
+        </ModalFooter>
+      </Modal>
+    </div>
+  );
+};
