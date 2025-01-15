@@ -2,3 +2,121 @@ const validateColumns = worksheet => {
     const columns = Object.keys(worksheet[0]);
     return requiredColumns.every(col => columns.includes(col));
   };
+
+
+
+
+// new code validate column
+const validateColumns = (worksheet, requiredColumns, specificColumnChecks = {}) => {
+  const columns = Object.keys(worksheet[0]);
+  const hasAllColumns = requiredColumns.every(col => columns.includes(col));
+
+  const allRowsValid = worksheet.every(row =>
+    requiredColumns.every(col => {
+      const value = row[col];
+      // General validation
+      const isValid = value !== undefined && value !== null && value.toString().trim() !== '';
+
+      // Specific column validation if defined
+      if (specificColumnChecks[col]) {
+        return isValid && specificColumnChecks[col](value);
+      }
+
+      return isValid;
+    })
+  );
+
+  return hasAllColumns && allRowsValid;
+};
+
+const requiredColumns = ['name', 'age', 'city'];
+const specificColumnChecks = {
+  city: value => value !== null && value !== 'N/A' && value.length > 0 // City must not be null, 'N/A', or empty
+};
+
+// Test cases
+const testCases = [
+  {
+    description: "Valid worksheet with all columns and valid city values",
+    worksheet: [
+      { name: 'John', age: 30, city: 'Bangkok' },
+      { name: 'Jane', age: 25, city: 'Chiang Mai' }
+    ],
+    expected: true
+  },
+  {
+    description: "Worksheet with a null city value",
+    worksheet: [
+      { name: 'John', age: 30, city: null },
+      { name: 'Jane', age: 25, city: 'Chiang Mai' }
+    ],
+    expected: false
+  },
+  {
+    description: "Worksheet with an empty city value",
+    worksheet: [
+      { name: 'John', age: 30, city: '' },
+      { name: 'Jane', age: 25, city: 'Chiang Mai' }
+    ],
+    expected: false
+  },
+  {
+    description: "Worksheet with 'N/A' as city value",
+    worksheet: [
+      { name: 'John', age: 30, city: 'N/A' },
+      { name: 'Jane', age: 25, city: 'Chiang Mai' }
+    ],
+    expected: false
+  },
+  {
+    description: "Worksheet missing the 'city' column entirely",
+    worksheet: [
+      { name: 'John', age: 30 },
+      { name: 'Jane', age: 25 }
+    ],
+    expected: false
+  },
+  {
+    description: "Worksheet with extra columns but valid required columns",
+    worksheet: [
+      { name: 'John', age: 30, city: 'Bangkok', country: 'Thailand' },
+      { name: 'Jane', age: 25, city: 'Chiang Mai', country: 'Thailand' }
+    ],
+    expected: true
+  },
+  {
+    description: "Worksheet with undefined city value",
+    worksheet: [
+      { name: 'John', age: 30, city: undefined },
+      { name: 'Jane', age: 25, city: 'Chiang Mai' }
+    ],
+    expected: false
+  },
+  {
+    description: "Empty worksheet (no rows)",
+    worksheet: [],
+    expected: true // No rows mean trivially valid
+  },
+  {
+    description: "Worksheet with city containing spaces only",
+    worksheet: [
+      { name: 'John', age: 30, city: '    ' },
+      { name: 'Jane', age: 25, city: 'Chiang Mai' }
+    ],
+    expected: false
+  },
+  {
+    description: "Worksheet with valid rows except one with an invalid city value",
+    worksheet: [
+      { name: 'John', age: 30, city: 'Bangkok' },
+      { name: 'Jane', age: 25, city: 'N/A' }
+    ],
+    expected: false
+  }
+];
+
+// Running the test cases
+testCases.forEach(({ description, worksheet, expected }, index) => {
+  const result = validateColumns(worksheet, requiredColumns, specificColumnChecks);
+  console.log(`Test Case ${index + 1}: ${description} => ${result === expected ? 'Passed' : 'Failed'}`);
+});
