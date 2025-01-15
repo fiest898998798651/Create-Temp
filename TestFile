@@ -184,3 +184,20 @@ const validateColumns = worksheet => {
     return true;
   });
 };
+
+// code v5
+const validateColumns = worksheet => {
+  // ดึงคอลัมน์จากแถวแรกของ worksheet
+  const columns = Object.keys(worksheet[0]);
+  console.log('คอลัมน์ที่พบในแถวแรก:', columns);
+
+  // ตรวจสอบว่า requiredColumns ทุกตัวมีอยู่ใน columns หรือไม่
+  const result = requiredColumns.every(col => {
+    const isColumnFound = columns.includes(col);
+    console.log(`ตรวจสอบคอลัมน์ "${col}": ${isColumnFound ? 'พบ' : 'ไม่พบ'}`);
+    return isColumnFound;
+  });
+  
+  console.log('ผลการตรวจสอบคอลัมน์ที่จำเป็น:', result);
+  return result;
+};
