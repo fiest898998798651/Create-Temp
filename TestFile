@@ -159,3 +159,28 @@ const validateWorksheet = (worksheet) => {
     return hasRequiredColumns && isCityValid;
   });
 };
+
+//code v4
+const validateColumns = worksheet => {
+  return worksheet.every(row => {
+    // Check if 'name' exists and is not empty
+    const name = row.name;
+    if (!name || name.trim() === '') {
+      return false;
+    }
+
+    // Check if 'age' exists and is a valid number
+    const age = row.age;
+    if (age !== undefined && (isNaN(age) || age === '')) {
+      return false;
+    }
+
+    // Check if 'city' exists and is not empty, null, or undefined
+    const city = row.city;
+    if (!city || city.trim() === '') {
+      return false;
+    }
+
+    return true;
+  });
+};
