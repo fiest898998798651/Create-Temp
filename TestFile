@@ -120,3 +120,27 @@ testCases.forEach(({ description, worksheet, expected }, index) => {
   const result = validateColumns(worksheet, requiredColumns, specificColumnChecks);
   console.log(`Test Case ${index + 1}: ${description} => ${result === expected ? 'Passed' : 'Failed'}`);
 });
+
+
+//code v2
+const validateColumns = (worksheet, requiredColumns, specificColumn = 'city') => {
+  // ตรวจสอบว่าทุกแถวมีคอลัมน์ที่ต้องการ
+  const hasAllColumns = worksheet.every(row =>
+    requiredColumns.every(col => row.hasOwnProperty(col))
+  );
+
+  // ตรวจสอบว่าเฉพาะคอลัมน์ city มีข้อมูลในทุกแถว
+  const cityValid = worksheet.every(row => {
+    const value = row[specificColumn];
+    return value !== undefined && value !== null && value.toString().trim() !== '';
+  });
+
+  // ตรวจสอบว่าคอลัมน์อื่นๆ มีแค่คอลัมน์ที่ต้องการ (ไม่ต้องเช็คค่าในคอลัมน์อื่นๆ)
+  const otherColumnsValid = worksheet.every(row =>
+    requiredColumns
+      .filter(col => col !== specificColumn) // ยกเว้นคอลัมน์ `city`
+      .every(col => row.hasOwnProperty(col)) // ตรวจสอบว่ามีคอลัมน์ในแถวหรือไม่
+  );
+
+  return hasAllColumns && cityValid && otherColumnsValid;
+};
