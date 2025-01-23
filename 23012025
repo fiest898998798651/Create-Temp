@@ -1,0 +1,19 @@
+public byte[] genExcelDiscountScore(DiscountScore discountScore)throws Exception{
+    	ByteArrayOutputStream byteArrayIO = new ByteArrayOutputStream();
+		InputStream in = null;
+		try {
+			in = getClass().getClassLoader().getResourceAsStream("template/Template Discount.xlsx");
+			Map parameters = new HashMap();
+			
+			parameters.put("discountScore", discountScore);
+
+			XLSTransformer transformer = new XLSTransformer();
+
+			Workbook wb = transformer.transformXLS(in, parameters);
+			wb.write(byteArrayIO);
+			
+		}catch(Exception e) {
+			logger.error("Exception:",e);
+		}
+		return byteArrayIO.toByteArray();
+    }
