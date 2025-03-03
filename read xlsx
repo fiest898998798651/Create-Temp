@@ -1,0 +1,74 @@
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import java.io.*;
+import java.util.List;
+import java.util.Map;
+
+public class ExcelHelper {
+
+    // 1. Create a new XLSX file from a template and insert records
+    public static void createXlsxFromTemplate(String templatePath, String outputPath, List<List<String>> records) throws IOException {
+        FileInputStream file = new FileInputStream(new File(templatePath));
+        Workbook workbook = new XSSFWorkbook(file);
+        Sheet sheet = workbook.getSheetAt(0); // Assuming data is in the first sheet
+
+        int rowNum = sheet.getLastRowNum() + 1; // Start after the last row
+        for (List<String> record : records) {
+            Row row = sheet.createRow(rowNum++);
+            for (int i = 0; i < record.size(); i++) {
+                Cell cell = row.createCell(i);
+                cell.setCellValue(record.get(i));
+            }
+        }
+
+        try (FileOutputStream outputStream = new FileOutputStream(outputPath)) {
+            workbook.write(outputStream);
+        }
+        workbook.close();
+    }
+
+    // 2. Read an existing file and insert a new row
+    public static void insertRow(String filePath, List<String> data) throws IOException {
+        FileInputStream file = new FileInputStream(new File(filePath));
+        Workbook workbook = new XSSFWorkbook(file);
+        Sheet sheet = workbook.getSheetAt(0);
+
+        int rowNum = sheet.getLastRowNum() + 1; // Append new row
+        Row row = sheet.createRow(rowNum);
+        for (int i = 0; i < data.size(); i++) {
+            Cell cell = row.createCell(i);
+            cell.setCellValue(data.get(i));
+        }
+
+        file.close();
+        try (FileOutputStream outputStream = new FileOutputStream(filePath)) {
+            workbook.write(outputStream);
+        }
+        workbook.close();
+    }
+
+    // 3. Read an existing file and update specific columns
+    public static void updateColumns(String filePath, int targetRowNum, Map<Integer, String> updates) throws IOException {
+        FileInputStream file = new FileInputStream(new File(filePath));
+        Workbook workbook = new XSSFWorkbook(file);
+        Sheet sheet = workbook.getSheetAt(0);
+
+        Row row = sheet.getRow(targetRowNum);
+        if (row != null) {
+            for (Map.Entry<Integer, String> entry : updates.entrySet()) {
+                int colIndex = entry.getKey();
+                String newValue = entry.getValue();
+
+                Cell cell = row.getCell(colIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                cell.setCellValue(newValue);
+            }
+        }
+
+        file.close();
+        try (FileOutputStream outputStream = new FileOutputStream(filePath)) {
+            workbook.write(outputStream);
+        }
+        workbook.close();
+    }
+}
