@@ -7,6 +7,43 @@ import java.util.Map;
 
 public class ExcelHelper {
 
+    public static void main(String[] args) {
+        try {
+            // 1️⃣ Create a new Excel file from a template and insert records
+            String templatePath = "template.xlsx"; // Template file
+            String outputPath = "output.xlsx"; // Generated output file
+
+            List<List<String>> records = List.of(
+                List.of("ID", "Name", "Age"), // Header row
+                List.of("1", "Alice", "25"),
+                List.of("2", "Bob", "30")
+            );    
+
+            System.out.println("Creating new Excel file from template...");
+            ExcelHelper.createXlsxFromTemplate(templatePath, outputPath, records);
+            System.out.println("✅ File created successfully: " + outputPath);
+
+            // 2️⃣ Insert a new row into the existing file
+            List<String> newRow = List.of("3", "Charlie", "28");
+
+            System.out.println("Inserting a new row...");
+            ExcelHelper.insertRow(outputPath, newRow);
+            System.out.println("✅ Row inserted successfully!");
+
+            // 3️⃣ Update specific columns in an existing row
+            Map<Integer, String> updates = Map.of(
+                1, "Updated Bob", // Change Name (column index 1)
+                2, "35" // Change Age (column index 2)
+            );
+
+            System.out.println("Updating specific columns...");
+            ExcelHelper.updateColumns(outputPath, 1, updates); // Update row index 1 (Bob's row)
+            System.out.println("✅ Columns updated successfully!");
+
+        } catch (IOException e) {
+            System.err.println("❌ Error: " + e.getMessage());
+        }
+}
     // 1. Create a new XLSX file from a template and insert records
     public static void createXlsxFromTemplate(String templatePath, String outputPath, List<List<String>> records) throws IOException {
         FileInputStream file = new FileInputStream(new File(templatePath));
