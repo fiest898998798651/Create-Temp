@@ -108,7 +108,7 @@ public class YourClassName {
 
             logAllFields(dtoForResult, "FinalDto");
 
-            finalList.add(dtoForResult);
+            finalList.add(dtoForResult); 
         }
 
         logger.info("Final List Size: {}", finalList.size());
@@ -133,4 +133,121 @@ public class YourClassName {
             }
         }
     }
+}
+
+
+for (Map.Entry<String, List<BAYDto>> entry : grouped.entrySet()) {
+    String groupKey = entry.getKey();
+    List<BAYDto> group = entry.getValue();
+
+    logger.info("========== GROUP: {} ==========", groupKey);
+    logger.info("Group size: {}", group.size());
+
+    // รวมค่าทางการเงิน
+    BigDecimal sumIns = group.stream()
+        .map(BAYDto::getPmSumIns)
+        .filter(Objects::nonNull)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    BigDecimal grPrem = group.stream()
+        .map(BAYDto::getPmGrPrem)
+        .filter(Objects::nonNull)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    BigDecimal commAmt = group.stream()
+        .map(BAYDto::getPmCommAmt)
+        .filter(Objects::nonNull)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    // หาค่าที่ ends มากที่สุด
+    BAYDto selectedDto = group.stream()
+        .filter(Objects::nonNull)
+        .max(Comparator.comparingInt(BAYDto::getEnds))
+        .orElse(null);
+
+    if (selectedDto == null) {
+        logger.warn("No selected DTO for group {}", groupKey);
+        continue;
+    }
+
+    logAllFields(selectedDto, "SelectedDto");
+
+    // สร้าง obj ใหม่ และ copy field แบบ manual
+    BAYDto dtoForResult = new BAYDto();
+    dtoForResult.setPmBr(selectedDto.getPmBr());
+    dtoForResult.setPmCat(selectedDto.getPmCat());
+    dtoForResult.setPmClass(selectedDto.getPmClass());
+    dtoForResult.setPmYear(selectedDto.getPmYear());
+    dtoForResult.setPmPolNo(selectedDto.getPmPolNo());
+    dtoForResult.setCustomerName(selectedDto.getCustomerName());
+    dtoForResult.setRegion(selectedDto.getRegion());
+    dtoForResult.setChannel(selectedDto.getChannel());
+    dtoForResult.setPolicyStartDate(selectedDto.getPolicyStartDate());
+    dtoForResult.setEnds(selectedDto.getEnds());
+
+    // ใส่ค่าที่รวมไว้
+    dtoForResult.setPmSumIns(sumIns);
+    dtoForResult.setPmGrPrem(grPrem);
+    dtoForResult.setPmCommAmt(commAmt);
+
+    logAllFields(dtoForResult, "FinalDto");
+
+    finalList.add(dtoForResult);
+}for (Map.Entry<String, List<BAYDto>> entry : grouped.entrySet()) {
+    String groupKey = entry.getKey();
+    List<BAYDto> group = entry.getValue();
+
+    logger.info("========== GROUP: {} ==========", groupKey);
+    logger.info("Group size: {}", group.size());
+
+    // รวมค่าทางการเงิน
+    BigDecimal sumIns = group.stream()
+        .map(BAYDto::getPmSumIns)
+        .filter(Objects::nonNull)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    BigDecimal grPrem = group.stream()
+        .map(BAYDto::getPmGrPrem)
+        .filter(Objects::nonNull)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    BigDecimal commAmt = group.stream()
+        .map(BAYDto::getPmCommAmt)
+        .filter(Objects::nonNull)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    // หาค่าที่ ends มากที่สุด
+    BAYDto selectedDto = group.stream()
+        .filter(Objects::nonNull)
+        .max(Comparator.comparingInt(BAYDto::getEnds))
+        .orElse(null);
+
+    if (selectedDto == null) {
+        logger.warn("No selected DTO for group {}", groupKey);
+        continue;
+    }
+
+    logAllFields(selectedDto, "SelectedDto");
+
+    // สร้าง obj ใหม่ และ copy field แบบ manual
+    BAYDto dtoForResult = new BAYDto();
+    dtoForResult.setPmBr(selectedDto.getPmBr());
+    dtoForResult.setPmCat(selectedDto.getPmCat());
+    dtoForResult.setPmClass(selectedDto.getPmClass());
+    dtoForResult.setPmYear(selectedDto.getPmYear());
+    dtoForResult.setPmPolNo(selectedDto.getPmPolNo());
+    dtoForResult.setCustomerName(selectedDto.getCustomerName());
+    dtoForResult.setRegion(selectedDto.getRegion());
+    dtoForResult.setChannel(selectedDto.getChannel());
+    dtoForResult.setPolicyStartDate(selectedDto.getPolicyStartDate());
+    dtoForResult.setEnds(selectedDto.getEnds());
+
+    // ใส่ค่าที่รวมไว้
+    dtoForResult.setPmSumIns(sumIns);
+    dtoForResult.setPmGrPrem(grPrem);
+    dtoForResult.setPmCommAmt(commAmt);
+
+    logAllFields(dtoForResult, "FinalDto");
+
+    finalList.add(dtoForResult);
 }
