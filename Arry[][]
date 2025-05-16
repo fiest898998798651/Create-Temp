@@ -31,3 +31,106 @@ for (Map.Entry<String, List<BAYDto>> entry : grouped.entrySet()) {
 
     finalList.add(dtoForResult);
 }
+
+
+import java.math.BigDecimal;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.stream.Collectors;
+import org.apache.commons.beanutils.BeanUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class YourClassName {
+
+    private static final Logger logger = LoggerFactory.getLogger(YourClassName.class);
+
+    public void process(List<BAYDto> batDTOList) {
+        List<BAYDto> finalList = new ArrayList<>();
+
+        Map<String, List<BAYDto>> grouped = batDTOList.stream()
+            .collect(Collectors.groupingBy(dto ->
+                dto.getPmBr() + "|" +
+                dto.getPmCat() + "|" +
+                dto.getPmClass() + "|" +
+                dto.getPmYear() + "|" +
+                dto.getPmPolNo()
+            ));
+
+        for (Map.Entry<String, List<BAYDto>> entry : grouped.entrySet()) {
+            String groupKey = entry.getKey();
+            List<BAYDto> group = entry.getValue();
+
+            logger.info("========== GROUP: {} ==========", groupKey);
+            logger.info("Group size: {}", group.size());
+
+            // รวมค่าต่าง ๆ
+            BigDecimal sumIns = group.stream()
+                .map(BAYDto::getPmSumIns)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal grPrem = group.stream()
+                .map(BAYDto::getPmGrPrem)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal commAmt = group.stream()
+                .map(BAYDto::getPmCommAmt)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            // เลือก row ที่ ends มากที่สุด
+            BAYDto selectedDto = group.stream()
+                .filter(Objects::nonNull)
+                .max(Comparator.comparingInt(BAYDto::getEnds))
+                .orElse(null);
+
+            if (selectedDto == null) {
+                logger.warn("No selected DTO for group {}", groupKey);
+                continue;
+            }
+
+            logAllFields(selectedDto, "SelectedDto");
+
+            // สร้าง obj ใหม่
+            BAYDto dtoForResult = new BAYDto();
+            try {
+                BeanUtils.copyProperties(dtoForResult, selectedDto);
+            } catch (Exception e) {
+                logger.error("Copy properties failed for group {}: {}", groupKey, e.getMessage());
+                continue;
+            }
+
+            dtoForResult.setPmSumIns(sumIns);
+            dtoForResult.setPmGrPrem(grPrem);
+            dtoForResult.setPmCommAmt(commAmt);
+
+            logAllFields(dtoForResult, "FinalDto");
+
+            finalList.add(dtoForResult);
+        }
+
+        logger.info("Final List Size: {}", finalList.size());
+    }
+
+    public void logAllFields(Object obj, String prefix) {
+        if (obj == null) {
+            logger.warn("{} is null", prefix);
+            return;
+        }
+
+        Field[] fields = obj.getClass().getDeclaredFields();
+        logger.info("===== Logging fields for: {} =====", prefix);
+
+        for (Field field : fields) {
+            field.setAccessible(true);
+            try {
+                Object value = field.get(obj);
+                logger.info("{} -> {} = {}", prefix, field.getName(), value);
+            } catch (IllegalAccessException e) {
+                logger.warn("Cannot access field {} in {}", field.getName(), prefix);
+            }
+        }
+    }
+}
