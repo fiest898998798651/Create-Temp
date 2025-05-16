@@ -1,0 +1,33 @@
+List<BAYDto> finalList = new ArrayList<>();
+
+Map<String, List<BAYDto>> grouped = batDTOList.stream()
+    .collect(Collectors.groupingBy(dto -> dto.getPmBr() + "|" +
+                                          dto.getPmCat() + "|" +
+                                          dto.getPmClass() + "|" +
+                                          dto.getPmYear() + "|" +
+                                          dto.getPmPolNo()));
+
+for (Map.Entry<String, List<BAYDto>> entry : grouped.entrySet()) {
+    List<BAYDto> group = entry.getValue();
+
+    // รวมค่าทางการเงิน
+    BigDecimal sumIns = group.stream().map(BAYDto::getPmSumIns).reduce(BigDecimal.ZERO, BigDecimal::add);
+    BigDecimal grPrem = group.stream().map(BAYDto::getPmGrPrem).reduce(BigDecimal.ZERO, BigDecimal::add);
+    BigDecimal commAmt = group.stream().map(BAYDto::getPmCommAmt).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    // หาตัวที่ ends มากที่สุด
+    BAYDto selectedDto = group.stream()
+        .max(Comparator.comparingInt(BAYDto::getEnds))
+        .orElseThrow();
+
+    // สร้าง dto ใหม่ (clone ได้ถ้าต้องการ immutable)
+    BAYDto dtoForResult = new BAYDto();
+    BeanUtils.copyProperties(selectedDto, dtoForResult); // หรือใช้ new BAYDto(...)
+
+    // ใส่ค่าที่รวมไว้
+    dtoForResult.setPmSumIns(sumIns);
+    dtoForResult.setPmGrPrem(grPrem);
+    dtoForResult.setPmCommAmt(commAmt);
+
+    finalList.add(dtoForResult);
+}
