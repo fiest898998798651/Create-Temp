@@ -1,0 +1,58 @@
+Linux is Operating System (Opem Source)
+Linux มาจาก Unix
+linux distrochooser.de ใช้สำหรับเลือกว่าจะใช้ linux ตัวไหน เช่น ubuntu,debian
+Linux-Like => macOs
+
+ใช้ bash แทน sh
+sudo ย่อมาจาก superUserDo
+
+nano hosts
+sudo nano hosts ใช้สิทแต่ต้องใส่ Pass
+sudo -i คือเปลี่ยนเป็น root ไม่ปลอดภัยเพราะเปิดตลอดเวลา
+apt search mysql หา cmd ที่จะใช้
+
+chmod +x backup.sh //คือการเพิ่มสิทแค่อย่างเดียว
+7	6	5	4	3	2	1
+rwx		rwx		---
+7		7		0
+7		0		0
+root|groupUser|user
+
+Cron เอาไว้ run ^^^.sh
+crontab การตั้ง schudule ของ linux
+
+ipv4 32bit
+ipv6 128bit
+localhost จริงๆแล้วคือ domainname ที่ทำการ map port 127.0.0.1 ถ้าต้องการเปลี่ยนก็เปลี่ยนได้ในไฟล์ config ต่างๆ
+
+subnetmask หาข้อมูลเพิ่มเป็นการจัดการเรื่อง ip
+
+//NGINX
+fileConfig => /etc/nginx/nginx.cof
+compile => sudo nginx -t
+reload => sudo nginx -s reload
+
+nginx สามารถใช้ port เดียวกันแต่ชื่อต่างกันและ run ในเครื่องได้
+server{
+	listen 80; 
+//port สามารถเหมือนกันได้ในหลาย file config เป็นข้อดีของการทำ revese peoxrt ของ nginx
+	servername myapp.local;
+//สามารถมีได้หลาย servername ภายใต้ port เดียวกัน
+	root /usr/share/myapp.local;
+//path ที่ทำการเก็บ project
+	index index.html index.htm;
+//file แรกที่ทำการถูกเรียกใช้ภายใน root
+	charset utf-8;
+//??
+}
+แต่ในการเปลี่ยนทุกอย่างแล้วถ้ารันในเครื่องต้องไปเปลี่ยน config ในเครื่องให้สามารถมองเห็น domain อื่นด้วย
+
+LoadBalance คือ การกระจายการโหลดถ้าอยู่ในเครื่องเดียวกันควรใช้ pm2 แต่ปกติแล้วควรใช้หลายเครื่อง
+
+Basic Auth ใช้ในการทำ LogScreen ได้ถ้ากรอกไม่ถูกก็ไม่สามารถเข้าถึงได้ สามารถกรอกได้เรื่อยๆ
+
+DigitalOcean สำหรับทำ config nginx
+
+Firewall กำจัดสิทการเข้าถึง
+
+//CLOUD 
