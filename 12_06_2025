@@ -1,0 +1,62 @@
+import java.util.*;
+
+public class SmartSplit {
+    public static void main(String[] args) {
+        String address1 = "Tokyo Shibuya 1Chome Minami Bldg Apt203 Kyoto";
+        String address2 = "Osaka Chuo-ku 5Chome Floor7 BuildingA 12345";
+
+        // รวม string ทั้งหมด
+        String full = (address1 + " " + address2).trim().replaceAll("\\s+", " ");
+        String[] words = full.split(" ");
+
+        List<String> aList = new ArrayList<>();
+        List<String> bList = new ArrayList<>();
+        List<String> cList = new ArrayList<>();
+        List<String> dList = new ArrayList<>();
+
+        int totalLen = 0;
+        int i = 0;
+
+        // ----------- a: ≤ 10 characters
+        while (i < words.length && totalLen + words[i].length() + (totalLen == 0 ? 0 : 1) <= 10) {
+            totalLen += words[i].length() + (totalLen == 0 ? 0 : 1);
+            aList.add(words[i++]);
+        }
+
+        // ----------- b: ≤ 20 characters
+        totalLen = 0;
+        while (i < words.length && totalLen + words[i].length() + (totalLen == 0 ? 0 : 1) <= 20) {
+            totalLen += words[i].length() + (totalLen == 0 ? 0 : 1);
+            bList.add(words[i++]);
+        }
+
+        // ----------- c: ≤ 30 characters
+        totalLen = 0;
+        while (i < words.length && totalLen + words[i].length() + (totalLen == 0 ? 0 : 1) <= 30) {
+            totalLen += words[i].length() + (totalLen == 0 ? 0 : 1);
+            cList.add(words[i++]);
+        }
+
+        // ----------- d: ที่เหลือ
+        while (i < words.length) {
+            dList.add(words[i++]);
+        }
+
+        // เช็คว่า 5 ตัวท้ายของ d เป็นเลขหรือไม่
+        String dStr = String.join(" ", dList);
+        if (dStr.length() >= 5) {
+            String last5 = dStr.substring(dStr.length() - 5);
+            if (!last5.matches("\\d{5}")) {
+                dStr = "";
+            }
+        } else {
+            dStr = "";
+        }
+
+        // แสดงผล
+        System.out.println("a: [" + String.join(" ", aList) + "]");
+        System.out.println("b: [" + String.join(" ", bList) + "]");
+        System.out.println("c: [" + String.join(" ", cList) + "]");
+        System.out.println("d: [" + dStr + "]");
+    }
+}
