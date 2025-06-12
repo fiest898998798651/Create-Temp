@@ -1,0 +1,131 @@
+import java.util.ArrayList;
+import java.util.List;
+
+public class Seller {
+    private String sellerId;
+    private String sellerName;
+    private List<Client> clients = new ArrayList<>();
+
+    public Seller(String sellerId, String sellerName) {
+        this.sellerId = sellerId;
+        this.sellerName = sellerName;
+    }
+
+    public void addClient(Client client) {
+        clients.add(client);
+    }
+
+    public String getSellerId() { return sellerId; }
+    public String getSellerName() { return sellerName; }
+    public List<Client> getClients() { return clients; }
+
+    @Override
+    public String toString() {
+        return "Seller{" + "id='" + sellerId + '\'' +
+               ", name='" + sellerName + '\'' +
+               ", clients=" + clients + '}';
+    }
+}
+
+/////////////
+public class Client {
+    public String clientId;
+    public String clientName;
+    public String sellerId;
+
+    public Client(String clientId, String clientName, String sellerId) {
+        this.clientId = clientId;
+        this.clientName = clientName;
+        this.sellerId = sellerId;
+    }
+
+    public String getSellerId() { return sellerId; }
+
+    @Override
+    public String toString() {
+        return "Client{" + "id='" + clientId + '\'' +
+               ", name='" + clientName + '\'' + '}';
+    }
+}
+/////////////
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import java.io.FileInputStream;
+import java.util.*;
+import java.util.logging.Logger;
+
+public class SellerClientReader {
+    private static final Logger logger = Logger.getLogger(SellerClientReader.class.getName());
+
+    public static void main(String[] args) {
+        String path = "path/to/SellerData.xlsx"; // เปลี่ยน path ให้ตรงกับไฟล์
+
+        Map<String, Seller> sellerMap = new HashMap<>();
+        List<Client> allClients = new ArrayList<>();
+
+        try (FileInputStream fis = new FileInputStream(path);
+             Workbook workbook = new XSSFWorkbook(fis)) {
+
+            logger.info("Reading Seller sheet...");
+            Sheet sellerSheet = workbook.getSheet("Seller");
+            for (Row row : sellerSheet) {
+                if (row.getRowNum() == 0) continue;
+                String id = row.getCell(0).getStringCellValue();
+                String name = row.getCell(1).getStringCellValue();
+                sellerMap.put(id, new Seller(id, name));
+                logger.info("Loaded Seller: " + id + " - " + name);
+            }
+
+            logger.info("Reading Seller Client sheet...");
+            Sheet clientSheet = workbook.getSheet("Seller Client");
+            for (Row row : clientSheet) {
+                if (row.getRowNum() == 0) continue;
+                String clientId = row.getCell(0).getStringCellValue();
+                String clientName = row.getCell(1).getStringCellValue();
+                String sellerId = row.getCell(2).getStringCellValue();
+
+                Client client = new Client(clientId, clientName, sellerId);
+                allClients.add(client);
+                logger.info("Loaded Client: " + clientId + " (" + clientName + ") for Seller: " + sellerId);
+
+                Seller seller = sellerMap.get(sellerId);
+                if (seller != null) {
+                    seller.addClient(client);
+                    logger.info("Linked Client " + clientId + " to Seller " + sellerId);
+                }
+            }
+
+        } catch (Exception e) {
+            logger.severe("Error reading Excel: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // ค้นหา seller
+        Seller s = sellerMap.get("S01");
+        logger.info("Searching for Seller ID = S01");
+        if (s != null) {
+            logger.info("Found: " + s);
+        } else {
+            logger.warning("Seller S01 not found.");
+        }
+
+        // ค้นหา client
+        Client c = findClientById("C002", allClients);
+        logger.info("Searching for Client ID = C002");
+        if (c != null) {
+            logger.info("Found: " + c);
+        } else {
+            logger.warning("Client C002 not found.");
+        }
+    }
+
+    public static Client findClientById(String clientId, List<Client> allClients) {
+        for (Client client : allClients) {
+            if (client.clientId.equals(clientId)) {
+                return client;
+            }
+        }
+        return null;
+    }
+}
