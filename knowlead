@@ -1,0 +1,290 @@
+Linux is Operating System (Opem Source)
+Linux มาจาก Unix
+linux distrochooser.de ใช้สำหรับเลือกว่าจะใช้ linux ตัวไหน เช่น ubuntu,debian
+Linux-Like => macOs
+ 
+ใช้ bash แทน sh
+sudo ย่อมาจาก superUserDo
+ 
+nano hosts
+sudo nano hosts ใช้สิทแต่ต้องใส่ Pass
+sudo -i คือเปลี่ยนเป็น root ไม่ปลอดภัยเพราะเปิดตลอดเวลา
+apt search mysql หา cmd ที่จะใช้
+ 
+chmod +x backup.sh //คือการเพิ่มสิทแค่อย่างเดียว
+7	6	5	4	3	2	1
+rwx		rwx		---
+7		7		0
+7		0		0
+root|groupUser|user
+ 
+Cron เอาไว้ run ^^^.sh
+crontab การตั้ง schudule ของ linux
+ 
+ipv4 32bit
+ipv6 128bit
+localhost จริงๆแล้วคือ domainname ที่ทำการ map port 127.0.0.1 ถ้าต้องการเปลี่ยนก็เปลี่ยนได้ในไฟล์ config ต่างๆ
+ 
+subnetmask หาข้อมูลเพิ่มเป็นการจัดการเรื่อง ip
+ 
+//NGINX
+fileConfig => /etc/nginx/nginx.cof
+compile => sudo nginx -t
+reload => sudo nginx -s reload
+ 
+nginx สามารถใช้ port เดียวกันแต่ชื่อต่างกันและ run ในเครื่องได้
+server{
+	listen 80; 
+//port สามารถเหมือนกันได้ในหลาย file config เป็นข้อดีของการทำ revese peoxrt ของ nginx
+	servername myapp.local;
+//สามารถมีได้หลาย servername ภายใต้ port เดียวกัน
+	root /usr/share/myapp.local;
+//path ที่ทำการเก็บ project
+	index index.html index.htm;
+//file แรกที่ทำการถูกเรียกใช้ภายใน root
+	charset utf-8;
+//??
+}
+แต่ในการเปลี่ยนทุกอย่างแล้วถ้ารันในเครื่องต้องไปเปลี่ยน config ในเครื่องให้สามารถมองเห็น domain อื่นด้วย
+ 
+LoadBalance คือ การกระจายการโหลดถ้าอยู่ในเครื่องเดียวกันควรใช้ pm2 แต่ปกติแล้วควรใช้หลายเครื่อง
+ 
+Basic Auth ใช้ในการทำ LogScreen ได้ถ้ากรอกไม่ถูกก็ไม่สามารถเข้าถึงได้ สามารถกรอกได้เรื่อยๆ
+ 
+DigitalOcean สำหรับทำ config nginx
+ 
+Firewall กำจัดสิทการเข้าถึง
+ 
+//CLOUD
+
+
+Java SE ประกอบด้วย 4 ส่วนหลัก
+ส่วน	รายละเอียด
+1. JDK (Java Development Kit)	ชุดเครื่องมือสำหรับนักพัฒนา เช่น javac, java, javadoc
+2. JRE (Java Runtime Environment)	สิ่งที่ใช้รันโปรแกรม Java (รวม JVM และ Libraries)
+3. JVM (Java Virtual Machine)	ตัวแปล bytecode ให้ทำงานบนระบบปฏิบัติการต่าง ๆ
+4. Libraries (Java API)	คลาสและแพ็กเกจมาตรฐาน เช่น java.lang, java.util, java.io, java.net
+
+
+JDK → JRE → JVM
+   ↓
+Java SE (พื้นฐานภาษา, JDBC)
+   ↓
+Java EE (Servlets, JSP, JPA, EJB, Apache Tomcat, JNDI)
+   ↓
+Hibernate (ORM Framework ใช้ร่วมกับ JPA)
+   ↓
+Spring Framework (Core, MVC, Data JPA, Security)
+   ↓
+Spring Boot (Starter, Embedded Server, REST API)
+   ↓
+RESTful API (CRUD, JSON, Controller, Service, Repository)
+
+
+Oracle	            GraalVM, Oracle JDK	      Performance, multi-language
+Amazon	            Corretto	                Security, AWS compatibility
+IBM	                Semeru Runtime	          Cloud optimization
+Red Hat	            OpenJDK, WildFly	        Enterprise support
+Azul	              Zulu JDK	                Real-time performance
+Eclipse Foundation	Jakarta EE	              พัฒนา Java EE ต่อแบบเปิด
+
+Build Tools	  Maven, Gradle
+Testing	      JUnit, Mockito
+Logging	      Log4j, SLF4J, Logback
+Deployment	  Docker, Kubernetes
+Cloud	        Spring Cloud, AWS, GCP
+Reactive	    Spring WebFlux
+API Docs	    Swagger, OpenAPI
+Security	    Spring Security, JWT
+Community	    OpenJDK, Jakarta EE, Spring Ecosystem
+
+
+1. ผู้ใช้ส่งคำขอ Login (username + password)
+   ↓
+2. ระบบตรวจสอบข้อมูลผู้ใช้ (ผ่าน UserDetailsService)
+   ↓
+3. ถ้าข้อมูลถูกต้อง → สร้าง JWT Token
+   ↓
+4. ส่ง JWT Token กลับไปยัง Client
+   ↓
+5. Client เก็บ Token (เช่นใน LocalStorage หรือ Header)
+   ↓
+6. ทุกครั้งที่เรียก API → ส่ง JWT Token มาด้วย
+   ↓
+7. ระบบตรวจสอบ Token (ผ่าน Filter + JWT Utility)
+   ↓
+8. ถ้า Token ถูกต้อง → อนุญาตให้เข้าถึง Resource
+   ↓
+9. ถ้า Token หมดอายุหรือไม่ถูกต้อง → ปฏิเสธการเข้าถึง
+
+
+Client → /api/auth/login → ตรวจสอบผู้ใช้ → สร้าง JWT → ส่งกลับ
+Client → /api/hello → แนบ JWT → Filter ตรวจสอบ → อนุญาตหรือปฏิเสธ
+
+
+1. ผู้ใช้ส่งคำขอ Login (username + password)
+   ↓
+2. Spring Security ตรวจสอบกับ LDAP Server
+   ↓
+3. ถ้าข้อมูลถูกต้อง → สร้าง JWT Token
+   ↓
+4. ส่ง JWT Token กลับไปยัง Client
+   ↓
+5. Client ใช้ JWT Token เรียก API ต่าง ๆ
+   ↓
+6. ระบบตรวจสอบ JWT Token → อนุญาตหรือปฏิเสธ
+
+
+dc=example,dc=com
+ ├── ou=people
+ │    ├── uid=sekson
+ │    └── uid=admin
+ └── ou=groups
+      ├── cn=developers
+      └── cn=admins
+dc = domain component (เช่น example.com)
+ou = organizational unit (เช่น people, groups)
+uid = user ID
+cn = common name (เช่น group name)
+
+
+EKS: บริการ Kubernetes บน AWS ที่ช่วยจัดการ Cluster ให้เรา
+Pod: หน่วยที่รัน container
+Deployment: กำหนดว่าจะให้มี Pod กี่ตัว และอัปเดตอย่างไร
+Service: เปิดให้ภายนอกเข้าถึง Pod
+Ingress: ใช้ NGINX หรือ ALB เพื่อจัดการเส้นทางเข้าแอป
+ECR: ที่เก็บ Docker Image บน AWS
+
+
+[GitHub Actions]
+    └── Build Docker Image (แตกต่างกันตามแอป)
+        ├── Image A: สำหรับ Web Frontend
+        ├── Image B: สำหรับ Backend API
+        └── Image C: สำหรับ Background Jobs
+    └── Push ไปยัง ECR (Elastic Container Registry)
+
+[ECR]
+    ├── เก็บ Image A, B, C
+    └── ให้ EKS ดึงไปใช้ตอนสร้าง Pod
+
+[EKS Cluster]
+    ├── Node Group #1: Web Services
+    │   ├── Node A1 (EC2)
+    │   │   └── Pod A1 → ใช้ Image A
+    │   ├── Node A2 (EC2)
+    │   │   └── Pod A2 → ใช้ Image A
+    │   └── ใช้ Autoscaling ตามโหลด Web
+
+    ├── Node Group #2: Backend Services
+    │   ├── Node B1 (EC2)
+    │   │   └── Pod B1 → ใช้ Image B
+    │   ├── Node B2 (EC2)
+    │   │   └── Pod B2 → ใช้ Image B
+    │   └── ใช้ Autoscaling ตามโหลด API
+
+    ├── Node Group #3: Jobs / Workers
+    │   ├── Node C1 (EC2)
+    │   │   └── Pod C1 → ใช้ Image C
+    │   ├── Node C2 (EC2)
+    │   │   └── Pod C2 → ใช้ Image C
+    │   └── ใช้ Autoscaling ตามงานเบื้องหลัง
+
+    └── Kubernetes Resources
+        ├── Deployment: ควบคุมจำนวน Pod
+        ├── Service: เปิดให้ภายใน Cluster ติดต่อกัน
+        └── Ingress Controller (NGINX / ALB)
+            └── Public IP / Domain สำหรับเข้าถึงจากภายนอก
+
+
+✅ Node Group = แบ่งตามประเภทงาน
+✅ Node = EC2 ที่อยู่ใน Node Group
+✅ Node มีหลาย Pod ได้
+✅ Pod มีหลาย Container ได้ (แต่ส่วนใหญ่มีแค่ 1)
+✅ Pod ใช้ Image จาก ECR
+✅ Container = สิ่งที่รันจริง ๆ ใน Pod
+
+
+[1] VPC
+ ├── [2] Public Subnet
+ │    ├── [3] Internet Gateway
+ │    └── [4] Load Balancer (ALB/NLB)
+ │         └── [5] Ingress Controller (เช่น AWS ALB Controller)
+ │              └── [6] Kubernetes Service (type: LoadBalancer / Ingress)
+ │                   └── [7] Route to Pod (ผ่าน ClusterIP หรือ NodePort)
+ │
+ └── [8] Private Subnet
+      ├── [9] NAT Gateway (สำหรับออกเน็ตจากภายใน)
+      └── [10] Node Group (EC2 หรือ Fargate)
+           ├── [11] Pod (Container ที่ deploy แล้ว)
+           │    ├── [12] Service Account + IAM Role (IRSA)
+           │    └── [13] Internal Communication (ระหว่าง Pod)
+           └── [14] kubelet + CNI Plugin (จัดการ network pod)
+
+
+[1] VPC: เป็นเครือข่ายหลักที่ครอบคลุมทุก resource
+[2] Public Subnet: ใช้สำหรับ resource ที่ต้องเข้าถึงจากภายนอก เช่น Load Balancer
+[3] Internet Gateway: ให้สิทธิ์ subnet เชื่อมต่อกับอินเทอร์เน็ต
+[4] Load Balancer: รับ traffic จากผู้ใช้ภายนอก
+[5] Ingress Controller: จัดการเส้นทางเข้าแอปผ่าน Kubernetes
+[6] Kubernetes Service: เป็นจุดเชื่อมต่อระหว่างภายนอกกับ Pod
+[7] Route to Pod: ส่ง traffic ไปยัง container ที่ให้บริการ
+[8] Private Subnet: ใช้สำหรับ Node Group ที่ไม่ต้องเปิดเผยต่ออินเทอร์เน็ต
+[9] NAT Gateway: ให้ Node ภายในออกเน็ตได้ (เช่นดึง image จาก ECR)
+[10] Node Group: EC2 หรือ Fargate ที่ใช้รัน Pod
+[11] Pod: Container ที่ deploy แล้ว
+[12] IRSA: ให้ Pod เข้าถึง AWS service อย่างปลอดภัย
+[13] Internal Communication: Pod สื่อสารกันผ่าน ClusterIP
+[14] kubelet + CNI Plugin: จัดการ network และ lifecycle ของ Pod
+
+
+WEB 101
+
+Vertical Scaling เพิ่มทรัพยากรในเครื่องเดิม
+Horizental Scaling เพิ่มจำนวนเครื่อง
+
+หลักการ scale ต้อง scale ทั้งเครื่อง ทั้งระบบ
+
+Monolith แบบเก่าอยู่ในเครื่องใหญ่ scale ยาก
+
+==========================
+แยกการทำงานออกจากกัน
+User Service
+Order Service
+Product Service
+Payment Service
+
+ลักษณะสำคัญ
+แยกแต่ละบริการออกจากกัน
+สื่อสารผ่าน API
+อิสระในการพัฒนาและ Deploy ทุกการเปลี่ยนแปลง 1 ตัวจะไม่กระทบกับอีกตัว
+แยกการเก็บข้อมูล
+ 
+ข้อดี
+พัฒนารวดเร็วและอิสระ 
+การยิดหยุ่นของเทคโนโลยี เพราะแยกกันแต่ต่อกับด้วย api เลือกภาษาให้เหมาะกับงาน
+การปรับขยาย สามารถขยายได้ง่ายเพราะแยกกันอยู่แล้ว
+ความน่าเชื่อถือและความยืดยุ่น
+
+Monolith Deploy รวมอยู่ใน้อนเดียวกัน
+Microservice แยกทุกอย่างออกจากกัน dev and deploy แยกได้อิสระ
+
+API Composition แยกการทำงาน API Gateway
+เปลี่ยนจาก rest เป็น gRPC
+แยก ออกจากกันเป็นหลายๆเส้น
+
+ถ้าอยู่ใน cluster เดียวกันไม่จำเป็นต้อง http ให้ใช้ private network เชื่อมต่อกันเลย เช่น steaming(kafka , mq) เปลี่ยนเป็น gRPC
+
+DB per Service 
+User Service - DB 1
+Order Service - DB 2
+Product Service - DB 3
+Payment Service - DB 4
+
+API gateway ควรเป็นแค่ช่องทางห้ามทำอะไร เพราะจะทำให้หนัก
+
+Rollback > Saga Pattern ทำงานแบบส่ง state ไปด้วยเรื่อยๆ
+Choreography  way of saga pattern => message broker a อ่าน state, b อ่าน state ใช้งานร่วมกันผ่าน state
+Orchestration way of saga pattren => Orchestration single point of failure สามารเพิ่ม log เข้าไปได้แล้วเช็คย้อนหลังได้
+
+
+
