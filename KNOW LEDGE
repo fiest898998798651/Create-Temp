@@ -1,0 +1,616 @@
+#############################################################################################
+EC2: ใช้ในการจัดการ Backend และ Frontend ของแอปพลิเคชัน
+VPC: ใช้ในการ จัดการเครือข่าย (Network)
+IAM: ใช้ในการ จัดการการเข้าถึง (Access)
+CloudWatch: ใช้ในการ ตรวจสอบและมอนิเตอร์ ระบบ
+RDS: ใช้ในการ จัดการฐานข้อมูล (Database)
+S3: ใช้ในการ เก็บข้อมูล (Storage)
+#############################################################################################
+VPC คือเครือข่ายหลักที่ใช้แยก EC2, EKS, RDS และ S3 จากกันเพื่อความปลอดภัย
+EKS ใช้ในการรันแอปพลิเคชันแบบ containerized โดยใช้ Docker และสามารถปรับขนาดได้ตามต้องการ
+CI/CD pipeline จะช่วยในการอัปเดตแอปพลิเคชันอัตโนมัติผ่าน CodePipeline, CodeBuild, และ CodeDeploy
+IAM ควบคุมการเข้าถึงระหว่างบริการต่างๆ เช่น EC2, RDS, S3
+CloudWatch ตรวจสอบประสิทธิภาพการทำงานของ EC2, EKS, และ RDS และแจ้งเตือนเมื่อมีปัญหา
+ELB ช่วยกระจาย Traffic ไปยังหลาย EC2 หรือ containers เพื่อเพิ่มความสามารถในการรองรับการใช้งาน
+ระบบนี้จะช่วยให้แอปพลิเคชันมีความยืดหยุ่น, ปรับขนาดได้, และสามารถ deploy อัปเดตใหม่ได้อย่างรวดเร็วครับ!
+#############################################################################################
+                    +---------------------+
+                       |       IAM           |
+                       +---------------------+
+                                |
+                                v
+                +-----------------------------------+
+                |               VPC                |
+                |  +---------+        +-----------+ |
+                |  | Public  |        | Private   | |
+                |  | Subnet  |        | Subnet    | |
+                |  +----+----+        +-----+-----+ |
+                |       |                  |         |
+                +-----------------------------------+ |
+                                |                       |
+                                v                       v
+                   +-----------------------+  +-------------------+
+                   |         EC2           |  |      EKS (K8s)    |
+                   | (Frontend/Backend)    |  |   (Containers)    |
+                   +-----------------------+  +-------------------+
+                                |                       |
+                                v                       v
+                +-----------------------+  +-------------------+
+                |     Elastic Load      |  |       CloudWatch   |
+                |     Balancer (ELB)    |  |   (Monitoring)     |
+                +-----------------------+  +-------------------+
+                                |
+                                v
+                       +---------------------+
+                       |         RDS         |
+                       | (Relational Database)|
+                       +---------------------+
+                                |
+                                v
+                         +---------------+
+                         |      S3       |
+                         | (Storage)     |
+                         +---------------+
+                                |
+                                v
+                         +------------------------+
+                         |     CI/CD Pipeline     |
+                         | (CodePipeline, Build)  |
+                         +------------------------+
+#############################################################################################
+วิธี	ข้อดี	ข้อเสีย	เหมาะกับสถานการณ์
+เขียนลง PATH	ง่าย เร็ว	ต้องระวังสิทธิ์/overwrite	Job background, export ไฟล์
+เป็น byte[]	ใช้กับ API ได้	เปลือง RAM ถ้าไฟล์ใหญ่	ส่งไฟล์ผ่าน API, REST
+Stream	ไม่กิน RAM	ต้องจัดการ stream	Web app ให้ผู้ใช้โหลดไฟล์
+BufferedWriter	เขียนเร็ว ใช้กับไฟล์ใหญ่	ต้องจัดการ closing	Export log, raw data
+Excel/PDF/CSV (lib)	สวยงาม ใช้จริงได้เลย	ใช้ lib เพิ่ม	ระบบรายงาน, dashboard
+#############################################################################################
+Linux is Operating System (Opem Source)
+Linux มาจาก Unix
+linux distrochooser.de ใช้สำหรับเลือกว่าจะใช้ linux ตัวไหน เช่น ubuntu,debian
+Linux-Like => macOs
+ 
+ใช้ bash แทน sh
+sudo ย่อมาจาก superUserDo
+ 
+nano hosts
+sudo nano hosts ใช้สิทแต่ต้องใส่ Pass
+sudo -i คือเปลี่ยนเป็น root ไม่ปลอดภัยเพราะเปิดตลอดเวลา
+apt search mysql หา cmd ที่จะใช้
+ 
+chmod +x backup.sh //คือการเพิ่มสิทแค่อย่างเดียว
+7	6	5	4	3	2	1
+rwx		rwx		---
+7		7		0
+7		0		0
+root|groupUser|user
+ 
+Cron เอาไว้ run ^^^.sh
+crontab การตั้ง schudule ของ linux
+ 
+ipv4 32bit
+ipv6 128bit
+localhost จริงๆแล้วคือ domainname ที่ทำการ map port 127.0.0.1 ถ้าต้องการเปลี่ยนก็เปลี่ยนได้ในไฟล์ config ต่างๆ
+ 
+subnetmask หาข้อมูลเพิ่มเป็นการจัดการเรื่อง ip
+ 
+//NGINX
+fileConfig => /etc/nginx/nginx.cof
+compile => sudo nginx -t
+reload => sudo nginx -s reload
+ 
+nginx สามารถใช้ port เดียวกันแต่ชื่อต่างกันและ run ในเครื่องได้
+server{
+	listen 80; 
+//port สามารถเหมือนกันได้ในหลาย file config เป็นข้อดีของการทำ revese peoxrt ของ nginx
+	servername myapp.local;
+//สามารถมีได้หลาย servername ภายใต้ port เดียวกัน
+	root /usr/share/myapp.local;
+//path ที่ทำการเก็บ project
+	index index.html index.htm;
+//file แรกที่ทำการถูกเรียกใช้ภายใน root
+	charset utf-8;
+//??
+}
+แต่ในการเปลี่ยนทุกอย่างแล้วถ้ารันในเครื่องต้องไปเปลี่ยน config ในเครื่องให้สามารถมองเห็น domain อื่นด้วย
+ 
+LoadBalance คือ การกระจายการโหลดถ้าอยู่ในเครื่องเดียวกันควรใช้ pm2 แต่ปกติแล้วควรใช้หลายเครื่อง
+ 
+Basic Auth ใช้ในการทำ LogScreen ได้ถ้ากรอกไม่ถูกก็ไม่สามารถเข้าถึงได้ สามารถกรอกได้เรื่อยๆ
+ 
+DigitalOcean สำหรับทำ config nginx
+ 
+Firewall กำจัดสิทการเข้าถึง
+#############################################################################################
+Java SE ประกอบด้วย 4 ส่วนหลัก
+ 
+ส่วน	รายละเอียด
+1. JDK (Java Development Kit)	ชุดเครื่องมือสำหรับนักพัฒนา เช่น javac, java, javadoc
+2. JRE (Java Runtime Environment)	สิ่งที่ใช้รันโปรแกรม Java (รวม JVM และ Libraries)
+3. JVM (Java Virtual Machine)	ตัวแปล bytecode ให้ทำงานบนระบบปฏิบัติการต่าง ๆ
+4. Libraries (Java API)	คลาสและแพ็กเกจมาตรฐาน เช่น java.lang, java.util, java.io, java.net
+#############################################################################################
+JDK → JRE → JVM
+
+   ↓
+
+Java SE (พื้นฐานภาษา, JDBC)
+
+   ↓
+
+Java EE (Servlets, JSP, JPA, EJB, Apache Tomcat, JNDI)
+
+   ↓
+
+Hibernate (ORM Framework ใช้ร่วมกับ JPA)
+
+   ↓
+
+Spring Framework (Core, MVC, Data JPA, Security)
+
+   ↓
+
+Spring Boot (Starter, Embedded Server, REST API)
+
+   ↓
+
+RESTful API (CRUD, JSON, Controller, Service, Repository)
+ 
+ 
+บริษัท	ปรับแต่งอะไร	จุดประสงค์
+Oracle	GraalVM, Oracle JDK	Performance, multi-language
+Amazon	Corretto	Security, AWS compatibility
+IBM	Semeru Runtime	Cloud optimization
+Red Hat	OpenJDK, WildFly	Enterprise support
+Azul	Zulu JDK	Real-time performance
+Eclipse Foundation	Jakarta EE	พัฒนา Java EE ต่อแบบเปิด
+ 
+ 
+ 
+Build Tools	Maven, Gradle
+Testing	JUnit, Mockito
+Logging	Log4j, SLF4J, Logback
+Deployment	Docker, Kubernetes
+Cloud	Spring Cloud, AWS, GCP
+Reactive	Spring WebFlux
+API Docs	Swagger, OpenAPI
+Security	Spring Security, JWT
+Community	OpenJDK, Jakarta EE, Spring Ecosystem
+ 
+ 
+dataen > validation data > insert > mange batch > end
+ 
+1. ผู้ใช้ส่งคำขอ Login (username + password)
+   ↓
+2. ระบบตรวจสอบข้อมูลผู้ใช้ (ผ่าน UserDetailsService)
+   ↓
+3. ถ้าข้อมูลถูกต้อง → สร้าง JWT Token
+   ↓
+4. ส่ง JWT Token กลับไปยัง Client
+   ↓
+5. Client เก็บ Token (เช่นใน LocalStorage หรือ Header)
+   ↓
+6. ทุกครั้งที่เรียก API → ส่ง JWT Token มาด้วย
+   ↓
+7. ระบบตรวจสอบ Token (ผ่าน Filter + JWT Utility)
+   ↓
+8. ถ้า Token ถูกต้อง → อนุญาตให้เข้าถึง Resource
+   ↓
+9. ถ้า Token หมดอายุหรือไม่ถูกต้อง → ปฏิเสธการเข้าถึง
+ 
+#############################################################################################
+Client → /api/auth/login → ตรวจสอบผู้ใช้ → สร้าง JWT → ส่งกลับ
+Client → /api/hello → แนบ JWT → Filter ตรวจสอบ → อนุญาตหรือปฏิเสธ
+ 
+1. ผู้ใช้ส่งคำขอ Login (username + password)
+   ↓
+2. Spring Security ตรวจสอบกับ LDAP Server
+   ↓
+3. ถ้าข้อมูลถูกต้อง → สร้าง JWT Token
+   ↓
+4. ส่ง JWT Token กลับไปยัง Client
+   ↓
+5. Client ใช้ JWT Token เรียก API ต่าง ๆ
+   ↓
+6. ระบบตรวจสอบ JWT Token → อนุญาตหรือปฏิเสธ
+ 
+ 
+dc=example,dc=com
+ ├── ou=people
+ │    ├── uid=sekson
+ │    └── uid=admin
+ └── ou=groups
+      ├── cn=developers
+      └── cn=admins
+dc = domain component (เช่น example.com)
+ou = organizational unit (เช่น people, groups)
+uid = user ID
+cn = common name (เช่น group name)
+ 
+#############################################################################################
+EKS: บริการ Kubernetes บน AWS ที่ช่วยจัดการ Cluster ให้เรา
+Pod: หน่วยที่รัน container
+Deployment: กำหนดว่าจะให้มี Pod กี่ตัว และอัปเดตอย่างไร
+Service: เปิดให้ภายนอกเข้าถึง Pod
+Ingress: ใช้ NGINX หรือ ALB เพื่อจัดการเส้นทางเข้าแอป
+ECR: ที่เก็บ Docker Image บน AWS
+
+ 
+[GitHub Actions]
+    └── Build Docker Image (แตกต่างกันตามแอป)
+        ├── Image A: สำหรับ Web Frontend
+        ├── Image B: สำหรับ Backend API
+        └── Image C: สำหรับ Background Jobs
+    └── Push ไปยัง ECR (Elastic Container Registry)
+[ECR]
+    ├── เก็บ Image A, B, C
+    └── ให้ EKS ดึงไปใช้ตอนสร้าง Pod
+[EKS Cluster]
+    ├── Node Group #1: Web Services
+    │   ├── Node A1 (EC2)
+    │   │   └── Pod A1 → ใช้ Image A
+    │   ├── Node A2 (EC2)
+    │   │   └── Pod A2 → ใช้ Image A
+    │   └── ใช้ Autoscaling ตามโหลด Web
+    ├── Node Group #2: Backend Services
+    │   ├── Node B1 (EC2)
+    │   │   └── Pod B1 → ใช้ Image B
+    │   ├── Node B2 (EC2)
+    │   │   └── Pod B2 → ใช้ Image B
+    │   └── ใช้ Autoscaling ตามโหลด API
+    ├── Node Group #3: Jobs / Workers
+    │   ├── Node C1 (EC2)
+    │   │   └── Pod C1 → ใช้ Image C
+    │   ├── Node C2 (EC2)
+    │   │   └── Pod C2 → ใช้ Image C
+    │   └── ใช้ Autoscaling ตามงานเบื้องหลัง
+    └── Kubernetes Resources
+        ├── Deployment: ควบคุมจำนวน Pod
+        ├── Service: เปิดให้ภายใน Cluster ติดต่อกัน
+        └── Ingress Controller (NGINX / ALB)
+            └── Public IP / Domain สำหรับเข้าถึงจากภายนอก
+ ✅ Node Group = แบ่งตามประเภทงาน
+✅ Node = EC2 ที่อยู่ใน Node Group
+✅ Node มีหลาย Pod ได้
+✅ Pod มีหลาย Container ได้ (แต่ส่วนใหญ่มีแค่ 1)
+✅ Pod ใช้ Image จาก ECR
+✅ Container = สิ่งที่รันจริง ๆ ใน Pod
+ 
+[1] VPC
+ ├── [2] Public Subnet
+ │    ├── [3] Internet Gateway
+ │    └── [4] Load Balancer (ALB/NLB)
+ │         └── [5] Ingress Controller (เช่น AWS ALB Controller)
+ │              └── [6] Kubernetes Service (type: LoadBalancer / Ingress)
+ │                   └── [7] Route to Pod (ผ่าน ClusterIP หรือ NodePort)
+ │
+ └── [8] Private Subnet
+      ├── [9] NAT Gateway (สำหรับออกเน็ตจากภายใน)
+      └── [10] Node Group (EC2 หรือ Fargate)
+           ├── [11] Pod (Container ที่ deploy แล้ว)
+           │    ├── [12] Service Account + IAM Role (IRSA)
+           │    └── [13] Internal Communication (ระหว่าง Pod)
+           └── [14] kubelet + CNI Plugin (จัดการ network pod)
+ 
+[1] VPC: เป็นเครือข่ายหลักที่ครอบคลุมทุก resource
+[2] Public Subnet: ใช้สำหรับ resource ที่ต้องเข้าถึงจากภายนอก เช่น Load Balancer
+[3] Internet Gateway: ให้สิทธิ์ subnet เชื่อมต่อกับอินเทอร์เน็ต
+[4] Load Balancer: รับ traffic จากผู้ใช้ภายนอก
+[5] Ingress Controller: จัดการเส้นทางเข้าแอปผ่าน Kubernetes
+[6] Kubernetes Service: เป็นจุดเชื่อมต่อระหว่างภายนอกกับ Pod
+[7] Route to Pod: ส่ง traffic ไปยัง container ที่ให้บริการ
+[8] Private Subnet: ใช้สำหรับ Node Group ที่ไม่ต้องเปิดเผยต่ออินเทอร์เน็ต
+[9] NAT Gateway: ให้ Node ภายในออกเน็ตได้ (เช่นดึง image จาก ECR)
+[10] Node Group: EC2 หรือ Fargate ที่ใช้รัน Pod
+[11] Pod: Container ที่ deploy แล้ว
+[12] IRSA: ให้ Pod เข้าถึง AWS service อย่างปลอดภัย
+[13] Internal Communication: Pod สื่อสารกันผ่าน ClusterIP
+[14] kubelet + CNI Plugin: จัดการ network และ lifecycle ของ Pod
+ 
+#############################################################################################
+WEB 101
+ 
+Vertical Scaling เพิ่มทรัพยากรในเครื่องเดิม
+Horizental Scaling เพิ่มจำนวนเครื่อง
+ 
+หลักการ scale ต้อง scale ทั้งเครื่อง ทั้งระบบ
+ 
+Monolith แบบเก่าอยู่ในเครื่องใหญ่ scale ยาก
+ 
+==========================
+แยกการทำงานออกจากกัน
+User Service
+Order Service
+Product Service
+Payment Service
+ 
+ลักษณะสำคัญ
+แยกแต่ละบริการออกจากกัน
+สื่อสารผ่าน API
+อิสระในการพัฒนาและ Deploy ทุกการเปลี่ยนแปลง 1 ตัวจะไม่กระทบกับอีกตัว
+แยกการเก็บข้อมูล
+
+ข้อดี
+พัฒนารวดเร็วและอิสระ 
+การยิดหยุ่นของเทคโนโลยี เพราะแยกกันแต่ต่อกับด้วย api เลือกภาษาให้เหมาะกับงาน
+การปรับขยาย สามารถขยายได้ง่ายเพราะแยกกันอยู่แล้ว
+ความน่าเชื่อถือและความยืดยุ่น
+ 
+Monolith Deploy รวมอยู่ใน้อนเดียวกัน
+Microservice แยกทุกอย่างออกจากกัน dev and deploy แยกได้อิสระ
+ 
+API Composition แยกการทำงาน API Gateway
+เปลี่ยนจาก rest เป็น gRPC
+แยก ออกจากกันเป็นหลายๆเส้น
+ 
+ถ้าอยู่ใน cluster เดียวกันไม่จำเป็นต้อง http ให้ใช้ private network เชื่อมต่อกันเลย เช่น steaming(kafka , mq) เปลี่ยนเป็น gRPC
+ 
+DB per Service 
+User Service - DB 1
+Order Service - DB 2
+Product Service - DB 3
+Payment Service - DB 4
+ 
+API gateway ควรเป็นแค่ช่องทางห้ามทำอะไร เพราะจะทำให้หนัก
+ 
+Rollback > Saga Pattern ทำงานแบบส่ง state ไปด้วยเรื่อยๆ
+Choreography  way of saga pattern => message broker a อ่าน state, b อ่าน state ใช้งานร่วมกันผ่าน state
+Orchestration way of saga pattren => Orchestration single point of failure สามารเพิ่ม log เข้าไปได้แล้วเช็คย้อนหลังได้
+
+ประเภท	เก็บที่ไหนในเบราว์เซอร์	ผูกกับอะไร	หมดอายุเมื่อ	เหมาะกับข้อมูลแบบไหน	ส่งไปกับ HTTP Request	ใช้กับอะไรบ้าง
+Local Storage	Application > Storage > Local Storage	Domain	ไม่หมดอายุ (จนกว่าจะลบ)	ค่าคงที่, การตั้งค่า, UI state	❌ ไม่ส่ง	Theme, language, user settings, toggle UI, cache ฝั่ง client
+Session Storage	Application > Storage > Session Storage	แท็บ (Tab)	เมื่อปิดแท็บหรือรีเฟรช	ข้อมูลชั่วคราว, ใช้เฉพาะ session	❌ ไม่ส่ง	Multi-step form, temporary form data, state ระหว่างหน้าในแท็บเดียว
+Cookies	Application > Storage > Cookies	Domain + Path	ตามที่ตั้งไว้ (หรือหมดอายุเอง)	ข้อมูลสำคัญ, ต้องใช้ฝั่ง server	✅ ส่งทุกครั้ง	Session ID, JWT token, auth, analytics, remember login, cross-page tracking
+#############################################################################################
+ระบบใหญ่, เสถียร, ปลอดภัย → Java, C#
+ระบบเร็ว, scale ง่าย, cloud-native → Go, Rust
+ระบบที่ต้องพัฒนาเร็ว, web-based → Node.js, Python
+ระบบเฉพาะทาง เช่น mobile, embedded → Kotlin, Rust
+ 
+ตัวอย่างงานที่ “ควรใช้ Thread”
+Web server ที่ต้องรับ request หลายตัวพร้อมกัน
+งานที่ต้องรอ I/O เช่น อ่านไฟล์, รอ database
+งาน background เช่น ส่ง email, ประมวลผล batch
+งานที่ต้องใช้ CPU หลาย core เช่น image processing
+ 
+ถ้า Sekson อยากเรียนรู้แบบมีลำดับ ผมแนะนำแบบนี้:
+interface → เข้าใจโครงสร้าง
+implements → ใช้งาน interface จริง
+extends → สืบทอดคลาสแม่
+abstract → คลาสที่ต้องให้ลูกสืบทอด
+final, super, this → ใช้ควบคุมพฤติกรรม
+แนวคิด polymorphism, encapsulation, composition → เข้าใจภาพรวม OOP
+ 
+🔝 ลำดับการใช้งานคำสำคัญใน OOP Java (เรียงตามความถี่)
+ลำดับ	คำสำคัญ	ใช้บ่อยแค่ไหน	คำอธิบาย
+1️⃣	implements	⭐⭐⭐⭐	ใช้บ่อยมากใน Spring Boot เพื่อ implement interface เช่น Repository,
+Service
+2️⃣	interface	⭐⭐⭐⭐	ใช้กำหนดโครงสร้างของ class โดยเฉพาะในระบบที่ใช้ DI (Dependency Injection)
+3️⃣	extends	⭐⭐⭐	ใช้สืบทอดคลาสแม่ เช่น extends JpaRepository, extends Thread
+4️⃣	abstract	⭐⭐⭐	ใช้สร้างคลาสหรือเมธอดที่ไม่สมบูรณ์ ต้องให้ subclass เขียนต่อ
+5️⃣	final	⭐⭐	ใช้ป้องกันการเปลี่ยนแปลง เช่น final class, final variable
+6️⃣	super	⭐⭐	ใช้เรียก constructor หรือ method จากคลาสแม่
+7️⃣	this	⭐⭐	ใช้อ้างถึง instance ปัจจุบันในคลาส
+8️⃣	polymorphism	⭐⭐	แนวคิดที่ใช้บ่อยในระบบที่มีหลาย implementation
+9️⃣	encapsulation	⭐⭐	แนวคิดที่ใช้กับการซ่อนข้อมูล เช่น ใช้ private และ getter/setter
+🔟	composition	⭐	ใช้รวม object หลายตัวเข้าด้วยกันแทนการสืบทอด
+ 
+✅ implements คืออะไร?
+ใช้ใน class เพื่อบอกว่า class นั้นจะ นำ interface มาใช้งานจริง
+class ที่ implements interface ต้องเขียน method ตามที่ interface กำหนดไว้ทั้งหมด
+ 
+🔹 interface คืออะไร?
+interface คือ โครงสร้าง (สัญญา) ที่กำหนดว่า class ที่ implements มัน ต้องมี method ตามที่กำหนดไว้
+ไม่มีการเขียนเนื้อหาของ method ใน interface — แค่บอกว่า “ต้องมี” เท่านั้น
+ 
+🔹 extends คืออะไร?
+extends เป็นคำสำคัญใน Java ที่ใช้สำหรับ สืบทอด (inherit) คุณสมบัติจากคลาสแม่ (superclass) หรือ interface แม่ ไปยังคลาสลูก (subclass) หรือ interface ลูก
+ 
+🔹 abstract คืออะไร?
+abstract เป็นคำสำคัญใน Java ที่ใช้กับ คลาส และ เมธอด เพื่อระบุว่า:
+คลาสนั้น ไม่สมบูรณ์ และ ไม่สามารถสร้าง object ได้โดยตรง
+เมธอดนั้น ไม่มีเนื้อหา และต้องให้คลาสลูกเขียนเอง
+ 
+🔹 final คืออะไร?
+final เป็น modifier ที่ใช้เพื่อบอกว่า สิ่งนี้ไม่สามารถเปลี่ยนแปลงหรือแก้ไขได้อีก
+สามารถใช้กับ:
+ตัวแปร (variable) → ค่าคงที่ เปลี่ยนค่าไม่ได้ final int x = 5;
+เมธอด (method) → ห้าม override final void run() {}
+คลาส (class) → ห้ามสืบทอด final class Helper {}
+ 
+🔹 super คืออะไร?
+super เป็น keyword ที่ใช้ในคลาสลูกเพื่อ:
+เรียก constructor ของคลาสแม่
+เรียก method หรือ field ที่อยู่ในคลาสแม่
+ 
+🔹 this คืออะไร?
+this เป็น keyword ที่ใช้เพื่ออ้างถึง object ปัจจุบัน ที่กำลังทำงานอยู่ในคลาสนั้น ๆ
+มันช่วยให้เราสามารถเข้าถึง field, method, หรือ constructor ของ object นั้นได้อย่างชัดเจน
+ 
+🔍 Polymorphism คืออะไร?
+Polymorphism มาจากภาษากรีก แปลว่า “หลายรูปแบบ”
+ใน Java หมายถึงความสามารถที่ object สามารถมีหลายรูปแบบ ได้ โดยเฉพาะเมื่อ:
+คลาสลูก extends คลาสแม่
+คลาส implements interface
+เราใช้ ตัวแปรชนิดคลาสแม่ เพื่อเก็บ object ของคลาสลูก
+ 
+🔍 Encapsulation คืออะไร?
+Encapsulation คือแนวคิดในการ ซ่อนข้อมูลภายใน object และ ควบคุมการเข้าถึงผ่าน method
+โดยใช้ access modifier เช่น private, public, protected เพื่อป้องกันไม่ให้ข้อมูลถูกเข้าถึงหรือแก้ไขโดยตรงจากภายนอก 
+Encapsulation คือการซ่อนข้อมูลและควบคุมการเข้าถึงผ่าน method
+ใช้ private กับ field และ public กับ getter/setter
+ช่วยให้โค้ดปลอดภัย ยืดหยุ่น และดูแลรักษาง่าย
+ 
+ 
+Modifier	ความหมาย
+private	เข้าถึงได้เฉพาะภายในคลาส
+public	เข้าถึงได้จากทุกที่
+protected	เข้าถึงได้จากคลาสลูกหรือ package เดียวกัน
+(default)	เข้าถึงได้เฉพาะใน package เดียวกัน
+ 
+ 
+🔍 Composition คืออะไร?
+Composition คือแนวคิดในการสร้าง object โดย รวม object อื่นเข้ามาเป็นส่วนประกอบ แทนที่จะสืบทอดจากคลาสแม่
+พูดง่าย ๆ คือ “มี” (has-a) แทน “เป็น” (is-a)
+🧱 เปรียบเทียบกับ Inheritance
+ 
+แนวคิด	ตัวอย่าง	ความหมาย
+Inheritance	class Dog extends Animal	Dog เป็น Animal
+Composition	class Car { Engine engine; }	Car มี Engine
+ 
+ 
+#############################################################################################
+Spring Boot โหลด config จาก application.properties
+ใช้ JNDI name ไปดึง datasource จาก WebSphere
+สร้าง JdbcTemplate จาก datasource นั้น
+Inject JdbcTemplate เข้าไปใน class ที่ต้องใช้
+ใช้ JdbcTemplate query ข้อมูลจาก AS/400
+ 
+JNDI คือวิธี lookup config จาก server
+JDBC คือ API สำหรับ query ฐานข้อมูล
+Driver คือตัวกลางที่ทำให้ JDBC เชื่อมกับ DB ได้
+Library คือชุดของ class ที่ช่วยให้เขียนโค้ดง่ายขึ้น
+ 
+🔹 1. JDBC คือ API สำหรับเชื่อมต่อฐานข้อมูลใน Java
+ใช้ Connection, PreparedStatement, ResultSet
+ต้องใช้ driver ที่รองรับ DB นั้น เช่น jt400.jar สำหรับ AS/400
+🔹 2. JNDI คือวิธี lookup config จาก application server
+ใช้เพื่อดึง DataSource ที่ประกาศไว้ใน WebSphere หรือ Tomcat
+ไม่ใช่ driver แต่เป็นวิธีจัดการ config และ resource
+ใช้ร่วมกับ JDBC ได้ เช่น:
+🔹 3. Spring Boot ใช้ JNDI เพื่อสร้าง JdbcTemplate
+โหลด JNDI name จาก application.properties
+สร้าง bean JdbcTemplate จาก DataSource
+Inject เข้า service ด้วย @Autowired + @Qualifier
+🔹 4. QGPL คือ default library บน AS/400
+ถ้าไม่ระบุ library ใน SQL → ระบบจะใช้ QGPL โดยอัตโนมัติ
+ถ้าระบุ library เช่น MYLIB.TABLE_NAME → จะ override QGPL
+🔹 5. การ query ข้อมูล
+ใช้ PreparedStatement เพื่อป้องกัน SQL Injection
+ใช้ ResultSet เพื่ออ่านข้อมูล
+หรือใช้ JdbcTemplate เพื่อเขียน query แบบง่ายและปลอดภัย
+🔹 6. ทุกภาษา (Java, Node.js, Python ฯลฯ) ต้องใช้ driver ของ DB นั้น
+Java → JDBC + jt400.jar
+Node.js → ibm_db หรือ odbc
+Python → ibm_db หรือ pyodbc
+🔹 7. JNDI กับ LDAP
+JNDI เป็น API ที่สามารถใช้ LDAP เป็น backend ได้
+แต่ JNDI เองไม่ใช่ LDAP
+✅ สรุปภาพรวมแบบเข้าใจง่าย
+การเชื่อมต่อ DB2 บน AS/400 ใน Spring Boot ใช้ JNDI เพื่อดึง datasource จาก WebSphere แล้วสร้าง JdbcTemplate เพื่อ query ข้อมูล โดยใช้ QGPL เป็น default library ถ้าไม่ระบุชื่อ library ใน SQL และทุกภาษาในการเชื่อมต่อ DB ต้องใช้ driver ที่รองรับ DB นั้น
+ 
+ 
+ 
+ 
+Java
+DataSource ds = new JndiDataSourceLookup().getDataSource("java:comp/env/jdbc/IBS");
+
+
+ 
+Spring Boot start → สร้าง Application Context
+สแกน annotation → สร้าง Bean
+เก็บ Bean ไว้ใน Application Context (ใน RAM)
+เวลาเรียก @Autowired → Spring ไปดึงจาก Application Context
+Bean อยู่ใน memory ตลอดจนกว่าจะ shutdown
+Bean ที่มี annotation เช่น @Service, @Controller, @Component, @Repository, @Configuration จะถูก Spring สร้างและเก็บไว้ใน Application Context (RAM) ตอน start application เพื่อให้เรียกใช้ได้ผ่าน @Autowired โดยไม่ต้อง new เอง
+ 
+ 
+WAS 6.1	~2006	Java SE 5	หมด support แล้ว
+WAS 7.0	~2008	Java SE 6	หมด support แล้ว
+WAS 8.0	~2011	Java SE 6, 7	หมด support แล้ว
+WAS 8.5	~2012	Java SE 6, 7, 8	ยังมีบางส่วน support
+WAS 9.0	~2016	Java SE 8, 11, 17	รองรับ Spring Boot, cloud-native, Liberty Profile
+ 
+ 
+🔹 1. Servlet – Java Pure
+เป็นพื้นฐานของ Java Web
+เขียนโดย extends HttpServlet
+จัดการ request/response ด้วย doGet() / doPost()
+ไม่มีโครงสร้าง MVC ต้องจัดการทุกอย่างเอง
+public class HelloServlet extends HttpServlet {
+
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) {
+
+        res.getWriter().write("Hello from Servlet");
+
+    }
+
+}
+
+🔹 2. Struts – MVC Framework
+สร้างบน Servlet
+ใช้ ActionServlet เป็น controller กลาง
+มี Action class แยก logic
+ใช้ XML config (struts-config.xml) ในการ map URL → Action
+public class LoginAction extends Action {
+
+    public ActionForward execute(...) {
+
+        // login logic
+
+        return mapping.findForward("success");
+
+    }
+
+}
+🔹 3. Spring MVC – Modern MVC
+ใช้ annotation เช่น @Controller, @RequestMapping
+ไม่ต้อง config XML เยอะ
+แยกชั้น Controller, Service, Repository ชัดเจน
+รองรับ Dependency Injection
+@Controller
+
+public class HelloController {
+
+    @GetMapping("/hello")
+
+    public String hello(Model model) {
+
+        model.addAttribute("msg", "Hello from Spring MVC");
+
+        return "hello";
+
+    }
+
+}
+
+🔹 4. Spring Boot – Auto-configured Spring
+เป็น Spring ที่ “พร้อมใช้งาน” ทันที
+ไม่ต้อง config servlet หรือ XML
+มี embedded server (Tomcat, Jetty)
+เหมาะกับการทำ REST API, Microservices
+@RestController
+
+public class HelloController {
+
+    @GetMapping("/hello")
+
+    public String hello() {
+
+        return "Hello from Spring Boot";
+
+    }
+
+}
+
+🧠 สรุปเปรียบเทียบ
+ 
+เทคโนโลยี	ยุค	ความง่าย	โครงสร้าง	เหมาะกับ
+Servlet	เก่า	ยาก	ไม่มี MVC	ระบบเล็ก, custom
+Struts	กลาง	ปานกลาง	MVC แบบ XML	ระบบองค์กร legacy
+Spring MVC	ใหม่	ง่าย	MVC แบบ annotation	ระบบทั่วไป
+Spring Boot	ใหม่มาก	ง่ายมาก	Auto-config	REST API, Microservices
+ 
+ 
+#############################################################################################
+#############################################################################################
+#############################################################################################
+#############################################################################################
+#############################################################################################
+#############################################################################################
+#############################################################################################
+#############################################################################################
+#############################################################################################
+#############################################################################################
+#############################################################################################
+#############################################################################################
